@@ -1,8 +1,6 @@
 const app = require("express")
 const mongoose = require("mongoose")
-// const bodyParser = require("body-parser")
 const config = require('./config')
-// app.use(bodyParser.json())
 const ModelAgree = require("./model/agreeModel")
 const ModelData = require("./model/dataModel")
 const {
@@ -21,42 +19,46 @@ mongoose.connect(
 
 const intervalObj = setInterval(() => {
     ModelData.find({})
-    // .where('age').gt(18).lt(60)
-    // .where(interests).in(['games', 'movies'])
     .select('createdAt cookieId')
     .exec(function(err, result) {
         if (err) {
             return next(err);
         }else{
-            console.log(result.length)
-            for (var i=0; i<result.length; i++) {
-                const TIME_LIMIT = process.env.TIMEL || 90;
-                var date1 = new Date(result[i].createdAt); 
-                var date2 = new Date();
-                var Difference_In_Time = date2.getTime() - date1.getTime(); 
-                var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
-                // var cookieID = result[i].cookieId
-                var cookieID = "1610433427330";
-                
-                if (Difference_In_Days>=TIME_LIMIT) {
-                    ModelAgree.remove({cookieId: cookieID})
-                    .exec(function(err, resultA) {
-                        if (err) {
-                            return next(err);
-                        }else{
-                            console.log("1")
-                        }
-                    })
-                    ModelData.remove({cookieId: cookieID})
-                    .exec(function(err, resultD) {
-                        if (err) {
-                            return next(err);
-                        }else{
-                            console.log("2")
-                        }
-                    })
+            var dn = new Date();
+            var tm = dn.toTimeString().slice(0, 5);
+            var sixA = "06:00";
+            var sixB = "18:00";
+            // console.log(tm)
+            if (tm === sixA || tm === sixB) {
+                for (var i=0; i<result.length; i++) {
+                    const TIME_LIMIT = process.env.TIMEL || 90;
+                    var date1 = new Date(result[i].createdAt); 
+                    var date2 = new Date();
+                    var Difference_In_Time = date2.getTime() - date1.getTime(); 
+                    var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+                    // var cookieID = result[i].cookieId
+                    var cookieID = "1612839829386";
+                    console.log(Difference_In_Days)
+                    if (Difference_In_Days>=TIME_LIMIT) {
+                        ModelAgree.deleteMany({cookieId: cookieID})
+                        .exec(function(err, resultA) {
+                            if (err) {
+                                return next(err);
+                            }else{
+                                console.log("1")
+                            }
+                        })
+                        ModelData.deleteOne({cookieId: cookieID})
+                        .exec(function(err, resultD) {
+                            if (err) {
+                                return next(err);
+                            }else{
+                                console.log("2")
+                            }
+                        })
+                    }
                 }
-            }
+            } 
         }
     });
-}, 10000);
+}, 60000);
